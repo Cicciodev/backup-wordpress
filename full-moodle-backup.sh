@@ -122,12 +122,6 @@ elif ["$BUCKET_NAME" != ""]; then
     echo "[WARNING]"
     echo "If your data came from Europe check GDPR compliance"
 fi
-elif ["$BUCKET_NAME" != ""]; then
-    echo "No PASSPHRASE provided!"
-    echo "You may want to encrypt your backup before storing them on S3"
-    echo "[WARNING]"
-    echo "If your data came from Europe check GDPR compliance"
-fi
 
 echo "END encryption"
 echo "START aws upload"
