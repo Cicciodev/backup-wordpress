@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 
 #----------------------------------------------------------
 # Simple moodle backup script
