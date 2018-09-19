@@ -97,7 +97,7 @@ FULL_BACKUP_FILE_NAME=${BACKUP_PATH}/full-backup-$timestamp.tar.gz
 
 # let's do it using tar
 # Create a fresh backup
-tar ${FULL_BACKUP_FILE_NAME} ${EXCLUDES} ${MOODLEDATA_PATH} 2>/dev/null
+tar hczf ${FULL_BACKUP_FILE_NAME} ${EXCLUDES} ${MOODLEDATA_PATH} &> /dev/null
 
 echo "END moodledata backup"
 echo "START encryption"
