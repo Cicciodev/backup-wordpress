@@ -3,7 +3,7 @@
 #----------------------------------------------------------
 # Simple moodle backup script
 #----------------------------------------------------------
-
+echo "START setup"
 # a passphrase for encryption, in order to being able to use almost any special characters use ""
 PASSPHRASE="{[YourSuperS3cr&tPassPhr@Here]#()"
 
@@ -47,7 +47,9 @@ declare -r script_name=$(basename "$0")
 
 let AUTODELETEAFTER--
 
+echo "END setup"
 
+echo "START db backup"
 #  set up all the mysqldump variables
 FILE=${MOODLEDATA_PATH}/db-backup-$timestamp.sql
 DBSERVER=127.0.0.1
@@ -56,7 +58,7 @@ USER=XXX
 PASS=XXX
 #  in case you run this more than once a day, remove the previous version of the file
 unalias rm     2> /dev/null
-rm ${FILE}.gz  2> /dev/null
+rm ${MOODLEDATA_PATH}/db-backup-*  2> /dev/null
 
 #  do the mysql database backup (dump)
 
@@ -70,9 +72,13 @@ mysqldump --opt --user=${USER} --password=${PASS} ${DATABASE} > ${FILE}
 gzip $FILE
 rm ${FILE}     2> /dev/null
 
+echo "END db backup"
+
+echo "START moodledata backup"
 
 declare -A EXC_PATH
 EXC_PATH[1]=${MOODLEDATA_PATH}/cache
+EXC_PATH[1]=${MOODLEDATA_PATH}/localcache
 EXC_PATH[2]=${MOODLEDATA_PATH}/lang
 EXC_PATH[3]=${MOODLEDATA_PATH}/temp
 EXC_PATH[4]=${MOODLEDATA_PATH}/trashdir
@@ -91,7 +97,11 @@ FULL_BACKUP_FILE_NAME=${BACKUP_PATH}/full-backup-$timestamp.tar.gz
 
 # let's do it using tar
 # Create a fresh backup
-tar
+tar ${FULL_BACKUP_FILE_NAME} ${EXCLUDES} ${MOODLEDATA_PATH} 2>/dev/null
+
+echo "END moodledata backup"
+echo "START encryption"
+
 ENCRYPTED_FULL_BACKUP_FILE_NAME=${BACKUP_PATH}/full-backup-$timestamp.tar.gz.gpg
 
 
@@ -119,6 +129,9 @@ elif ["$BUCKET_NAME" != ""]; then
     echo "If your data came from Europe check GDPR compliance"
 fi
 
+echo "END encryption"
+echo "START aws upload"
+
 if [ "$BUCKET_NAME" != "" ]; then
     if [ ! -e "$aws_cli" ] ; then
         echo; echo 'Did you run "pip install aws && aws configure"'; echo;
@@ -137,7 +150,13 @@ if [ "$BUCKET_NAME" != "" ]; then
 fi
 
 
+echo "END aws upload"
+echo "START cleaning"
+
 find $BACKUP_PATH -type f -mtime +$AUTODELETEAFTER -exec rm {} \;
+
+
+echo "END cleaning"
 
 echo; echo 'Files backup (without uploads) is done; please check the latest backup in '${BACKUP_PATH}'.';
 echo "Full path to the latest backup is ${FULL_BACKUP_FILE_NAME}"
